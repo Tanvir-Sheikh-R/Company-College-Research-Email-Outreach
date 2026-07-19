@@ -1,11 +1,6 @@
 # 🔍 Company & College Research + Email Outreach
 
 [![Streamlit App](https://img.shields.io/badge/Streamlit-FF4B4B?style=for-the-badge&logo=Streamlit&logoColor=white)](https://company-college-research.streamlit.app)
-[![Python](https://img.shields.io/badge/Python-3.14+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
-[![OpenRouter](https://img.shields.io/badge/OpenRouter-DeepSeek%20V4%20Free-FF6B6B?style=for-the-badge)](https://openrouter.ai)
-[![GitHub stars](https://img.shields.io/github/stars/Tanvir-Sheikh-R/Company-College-Research-Email-Outreach?style=for-the-badge&logo=github)](https://github.com/Tanvir-Sheikh-R/Company-College-Research-Email-Outreach)
-[![GitHub issues](https://img.shields.io/github/issues/Tanvir-Sheikh-R/Company-College-Research-Email-Outreach?style=for-the-badge&logo=github)](https://github.com/Tanvir-Sheikh-R/Company-College-Research-Email-Outreach/issues)
 
 An AI-powered multi-agent system that searches for companies or colleges by country, city, category, and size — then scrapes contact info, verifies emails via SMTP, generates personalized outreach drafts using DeepSeek V4, and sends them directly from the browser.
 
