@@ -42,7 +42,7 @@ with st.sidebar:
     city = st.text_input("City", placeholder="e.g. Berlin")
     category = st.text_input("Category", placeholder="e.g. AI, Software, Engineering, Medical")
     company_size = st.text_input("Size (optional)", placeholder="e.g. 50-200 employees, Startup")
-    max_results = st.slider("Max sites to scan", 5, 50, 25)
+    max_results = st.slider("Max sites to scan", 5, 100, 25)
 
     run_btn = st.button("🚀 Start Research", type="primary", use_container_width=True)
 
