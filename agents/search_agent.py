@@ -1,5 +1,5 @@
 from duckduckgo_search import DDGS
-from typing import List, Dict
+from typing import List, Dict, Optional
 import time
 import re
 
@@ -22,26 +22,32 @@ class SearchAgent:
         return results
 
     def build_queries(self, country: str, city: str, category: str, company_size: str = "",
-                      search_type: str = "Companies") -> List[str]:
+                      search_type: str = "Companies", expanded_keywords: Optional[List[str]] = None) -> List[str]:
         entity = "companies" if search_type == "Companies" else "universities colleges"
         queries = []
 
-        base_parts = [f"{category} {entity}"]
-        if city: base_parts.append(city)
-        if country: base_parts.append(country)
-        if company_size: base_parts.append(company_size)
-        base = " ".join(base_parts)
+        keywords = [category]
+        if expanded_keywords:
+            keywords.extend(expanded_keywords)
+        keywords = list(set(keywords))[:6]
 
-        queries.append(base)
-        queries.append(f"{base} official website")
-        queries.append(f"{base} contact")
-        queries.append(f"{category} {entity} in {city} {country}")
-        queries.append(f"best {category} {entity} {city} {country} 'contact us'")
+        for kw in keywords:
+            parts = [f"{kw} {entity}"]
+            if city: parts.append(city)
+            if country: parts.append(country)
+            if company_size: parts.append(company_size)
+            base = " ".join(parts)
 
-        if search_type == "Colleges/Universities":
-            queries.append(f"{category} {entity} {city} {country} admissions email")
-        else:
-            queries.append(f"{category} {entity} {city} {country} email address")
-            queries.append(f"{category} {entity} {city} {country} -jobs -careers -linkedin")
+            queries.append(base)
+            queries.append(f"{base} official website")
+            queries.append(f"{base} contact email")
+            queries.append(f"{kw} {entity} in {city} {country}")
+            queries.append(f"{kw} {entity} {city} -jobs -careers -linkedin")
 
-        return queries
+            if search_type == "Colleges/Universities":
+                queries.append(f"{kw} {entity} {city} {country} admissions")
+            else:
+                queries.append(f"{kw} {entity} {city} {country} contact")
+                queries.append(f"{kw} company {city} {country} email")
+
+        return list(set(queries))

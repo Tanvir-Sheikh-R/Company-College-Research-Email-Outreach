@@ -38,6 +38,41 @@ class LLMAgent:
         )
         self.model = "deepseek/deepseek-v4-flash:free"
 
+    def expand_search_keywords(self, category: str, search_type: str = "Companies") -> List[str]:
+        entity = "companies" if search_type == "Companies" else "colleges, universities, institutes"
+        prompt = f"""The user is searching for {entity} in the category: "{category}".
+
+Generate a list of 8-12 related search keywords and titles that would find RELEVANT {entity} similar to or related to "{category}".
+
+For {entity}, think about:
+- Related industry fields, sub-categories, specializations
+- Alternative terms people might use
+- Related course names (for colleges)
+- Related service areas (for companies)
+
+Return ONLY a JSON array of strings, nothing else. Example format for "AI":
+["Artificial Intelligence", "Machine Learning", "Deep Learning", "Data Science", "AI Solutions", "Intelligent Systems", "Computer Vision", "NLP", "AI Consulting", "Automation"]
+
+Return JSON array:"""
+
+        try:
+            resp = self.client.chat.completions.create(
+                model=self.model,
+                messages=[{"role": "user", "content": prompt}],
+                response_format={"type": "json_object"},
+                max_tokens=500,
+                temperature=0.3,
+            )
+            result = json.loads(resp.choices[0].message.content)
+            if isinstance(result, list):
+                return result
+            for v in result.values():
+                if isinstance(v, list):
+                    return v
+            return [category]
+        except:
+            return [category]
+
     def classify_search_result(self, title: str, snippet: str, url: str, category: str) -> Dict:
         prompt = f"""You are analyzing a search result for finding "{category}" companies/colleges.
 
@@ -71,45 +106,8 @@ Return JSON:
                 temperature=0.1,
             )
             return json.loads(resp.choices[0].message.content)
-        except Exception as e:
-            return {"is_valid_target": True, "reason": "llm_fallback", "entity_type": "unknown", "confidence": 0.3, "likely_name": ""}
-
-    def validate_with_page_content(self, url: str, page_text: str, category: str, country: str, city: str) -> Dict:
-        prompt = f"""You are validating if this webpage belongs to a legitimate {"college" if category.lower() in ["college", "university", "education"] else "company"} 
-matching these criteria:
-- Category: {category}
-- Country: {country}
-- City: {city}
-
-Page content (first 2000 chars):
-{page_text[:2000]}
-
-Return JSON:
-{{
-  "is_legitimate": true/false,
-  "reason": "why this is or isn't a valid target",
-  "actual_name": "the actual business/college name",
-  "matches_criteria": true/false,
-  "verified_location": "extracted location if found",
-  "description": "what they do in 1 sentence",
-  "has_contact_page": true/false,
-  "confidence": 0.0-1.0
-}}"""
-
-        try:
-            resp = self.client.chat.completions.create(
-                model=self.model,
-                messages=[
-                    {"role": "system", "content": "You validate if a website belongs to a real company/college that matches search criteria. Be strict."},
-                    {"role": "user", "content": prompt}
-                ],
-                response_format={"type": "json_object"},
-                max_tokens=300,
-                temperature=0.1,
-            )
-            return json.loads(resp.choices[0].message.content)
         except:
-            return {"is_legitimate": True, "reason": "llm_fallback", "actual_name": "", "matches_criteria": True, "verified_location": "", "description": "", "has_contact_page": False, "confidence": 0.3}
+            return {"is_valid_target": True, "reason": "llm_fallback", "entity_type": "unknown", "confidence": 0.3, "likely_name": ""}
 
     def extract_company_details(self, page_text: str, url: str) -> Dict:
         prompt = f"""Extract structured company/college information from this website content.

@@ -1,6 +1,11 @@
 # 🔍 Company & College Research + Email Outreach
 
 [![Streamlit App](https://img.shields.io/badge/Streamlit-FF4B4B?style=for-the-badge&logo=Streamlit&logoColor=white)](https://company-college-research.streamlit.app)
+[![Python](https://img.shields.io/badge/Python-3.14+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
+[![OpenRouter](https://img.shields.io/badge/OpenRouter-DeepSeek%20V4%20Free-FF6B6B?style=for-the-badge)](https://openrouter.ai)
+[![GitHub stars](https://img.shields.io/github/stars/Tanvir-Sheikh-R/Company-College-Research-Email-Outreach?style=for-the-badge&logo=github)](https://github.com/Tanvir-Sheikh-R/Company-College-Research-Email-Outreach)
+[![GitHub issues](https://img.shields.io/github/issues/Tanvir-Sheikh-R/Company-College-Research-Email-Outreach?style=for-the-badge&logo=github)](https://github.com/Tanvir-Sheikh-R/Company-College-Research-Email-Outreach/issues)
 
 An AI-powered multi-agent system that searches for companies or colleges by country, city, category, and size — then scrapes contact info, verifies emails via SMTP, generates personalized outreach drafts using DeepSeek V4, and sends them directly from the browser.
 
@@ -145,15 +150,32 @@ streamlit run app.py
 | SMTP Email Verification | From your IP, may get rate-limited | Cloudflare Workers for IP rotation (optional) |
 | Gmail SMTP Sending | 500 emails/day free | Sufficient for outreach campaigns |
 
+## 💡 Suggestions & Feedback
+
+Got an idea to make this better? I'd love to hear it!
+
+Some things I'm thinking about:
+- Adding **LinkedIn profile scraping** for direct contact finding
+- **Multi-language email drafts** (German, French, Spanish, etc.)
+- **CRM integration** (export directly to HubSpot, Salesforce)
+- **Scheduling & follow-up reminders**
+- **Analytics dashboard** (open rates, reply tracking)
+- **Batch email verification** with progress tracking
+
+👉 **Open a [suggestion](https://github.com/Tanvir-Sheikh-R/Company-College-Research-Email-Outreach/issues/new?labels=suggestion) or [start a discussion](https://github.com/Tanvir-Sheikh-R/Company-College-Research-Email-Outreach/discussions/new)**
+
+---
+
+**Tags:** `streamlit` `ai-agent` `email-outreach` `lead-generation` `web-scraping` `email-verification` `deepseek` `business-development` `student-recruitment` `openrouter`
+
 ## Contributing
 
 Contributions, issues, and feature requests are welcome!
 
-- 🐛 **Found a bug?** [Open an issue](https://github.com/your-username/your-repo/issues)
-- 💡 **Have an idea?** [Start a discussion](https://github.com/your-username/your-repo/discussions)
+- 🐛 **Found a bug?** [Open an issue](https://github.com/Tanvir-Sheikh-R/Company-College-Research-Email-Outreach/issues/new?labels=bug)
+- 💡 **Have a suggestion?** [Open a suggestion](https://github.com/Tanvir-Sheikh-R/Company-College-Research-Email-Outreach/issues/new?labels=suggestion)
+- 🗣 **Want to discuss?** [Start a discussion](https://github.com/Tanvir-Sheikh-R/Company-College-Research-Email-Outreach/discussions/new)
 - 🔧 **Want to contribute?** Fork the repo and submit a pull request
-
-> Replace `your-username/your-repo` with your actual GitHub repository URL.
 
 ## License
 
