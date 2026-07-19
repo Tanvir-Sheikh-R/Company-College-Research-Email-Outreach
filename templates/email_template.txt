@@ -1,0 +1,18 @@
+Subject: Partnership Opportunity with {{sender_company}}
+
+Dear {{company_name}} Team,
+
+I hope this message finds you well.
+
+My name is {{sender_name}} from {{sender_company}}. We specialize in connecting international students and professionals with opportunities abroad. 
+
+We are particularly impressed by {{company_name}}'s work in {{category}} sector in {{city}}, {{country}} and believe there could be a mutually beneficial partnership opportunity.
+
+We would love to schedule a brief call to discuss how we might collaborate.
+
+Looking forward to hearing from you.
+
+Best regards,
+{{sender_name}}
+{{sender_company}}
+{{sender_email}}
