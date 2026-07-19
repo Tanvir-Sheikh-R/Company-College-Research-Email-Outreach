@@ -30,28 +30,48 @@ Rules:
 - Industry/Category should match what the company actually does
 - Company name should be the official registered name"""
 
+AVAILABLE_FREE_MODELS = [
+    "deepseek/deepseek-v4-flash:free",
+    "qwen/qwen3-coder:free",
+    "google/gemma-4-31b-it:free",
+    "nvidia/nemotron-3-ultra-550b-a55b:free",
+    "meta-llama/llama-3.3-70b-instruct:free",
+    "openai/gpt-oss-20b:free",
+]
+
 class LLMAgent:
-    def __init__(self, api_key: str):
+    def __init__(self, api_key: str, model_choice: str = "deepseek"):
         self.client = OpenAI(
             base_url="https://openrouter.ai/api/v1",
             api_key=api_key,
         )
-        self.model = "deepseek/deepseek-v4-flash:free"
+        if model_choice == "deepseek":
+            self.model = "deepseek/deepseek-v4-flash:free"
+        elif model_choice == "openrouter-free":
+            self.model = "openrouter/free"
+        elif model_choice == "qwen":
+            self.model = "qwen/qwen3-coder:free"
+        elif model_choice == "gemma":
+            self.model = "google/gemma-4-31b-it:free"
+        elif model_choice == "nemotron":
+            self.model = "nvidia/nemotron-3-ultra-550b-a55b:free"
+        elif model_choice == "llama":
+            self.model = "meta-llama/llama-3.3-70b-instruct:free"
+        else:
+            self.model = model_choice
 
-    def expand_search_keywords(self, category: str, search_type: str = "Companies") -> List[str]:
+    def expand_search_keywords(self, category: str, search_type: str = "Companies",
+                               country: str = "", city: str = "") -> List[str]:
         entity = "companies" if search_type == "Companies" else "colleges, universities, institutes"
-        prompt = f"""The user is searching for {entity} in the category: "{category}".
+        prompt = f"""The user wants to find {entity} matching this: "{category}" in {city}, {country}.
 
-Generate a list of 8-12 related search keywords and titles that would find RELEVANT {entity} similar to or related to "{category}".
+Generate 12-15 related search keywords/tags that would find RELEVANT {entity} similar to "{category}".
 
-For {entity}, think about:
-- Related industry fields, sub-categories, specializations
-- Alternative terms people might use
-- Related course names (for colleges)
-- Related service areas (for companies)
+For companies: think of related industries, sub-sectors, alternative names, specific company types (e.g. "AI" → "machine learning startups, deep learning, computer vision, NLP, AI consulting, LLM, automation, data science")
+For colleges: think of related departments, course names, specializations, degree types
 
-Return ONLY a JSON array of strings, nothing else. Example format for "AI":
-["Artificial Intelligence", "Machine Learning", "Deep Learning", "Data Science", "AI Solutions", "Intelligent Systems", "Computer Vision", "NLP", "AI Consulting", "Automation"]
+Return ONLY a JSON array of strings. Be broad and comprehensive.
+Example for "AI": ["Artificial Intelligence", "Machine Learning", "Deep Learning", "Data Science", "Computer Vision", "NLP", "AI Solutions", "Intelligent Systems", "Robotics", "Automation", "Predictive Analytics", "AI Consulting", "ML Engineering", "LLM"]
 
 Return JSON array:"""
 
@@ -60,8 +80,8 @@ Return JSON array:"""
                 model=self.model,
                 messages=[{"role": "user", "content": prompt}],
                 response_format={"type": "json_object"},
-                max_tokens=500,
-                temperature=0.3,
+                max_tokens=600,
+                temperature=0.4,
             )
             result = json.loads(resp.choices[0].message.content)
             if isinstance(result, list):
@@ -72,6 +92,46 @@ Return JSON array:"""
             return [category]
         except:
             return [category]
+
+    def generate_search_queries(self, category: str, search_type: str = "Companies",
+                                 country: str = "", city: str = "",
+                                 expanded_keywords: Optional[List[str]] = None) -> List[str]:
+        keywords = expanded_keywords or [category]
+        keywords_str = ", ".join(keywords[:8])
+
+        entity = "company" if search_type == "Companies" else "college university"
+        entity_plural = "companies" if search_type == "Companies" else "colleges universities"
+
+        prompt = f"""Generate 20 specific search queries to find {entity_plural} matching these categories: {keywords_str}
+Location: {city}, {country}
+
+Queries should vary in format:
+- Direct: "keyword company city"
+- Long-tail: "top keyword companies in city that..."
+- Contact-focused: "keyword company city email contact"
+- List-focused: "list of keyword companies in city"
+- Site-specific: various phrasings
+
+Return ONLY a JSON array of 20 query strings. Make each query unique and targeted.
+Return JSON array:"""
+
+        try:
+            resp = self.client.chat.completions.create(
+                model=self.model,
+                messages=[{"role": "user", "content": prompt}],
+                response_format={"type": "json_object"},
+                max_tokens=1000,
+                temperature=0.6,
+            )
+            result = json.loads(resp.choices[0].message.content)
+            if isinstance(result, list):
+                return result
+            for v in result.values():
+                if isinstance(v, list):
+                    return v
+            return []
+        except:
+            return []
 
     def classify_search_result(self, title: str, snippet: str, url: str, category: str) -> Dict:
         prompt = f"""You are analyzing a search result for finding "{category}" companies/colleges.

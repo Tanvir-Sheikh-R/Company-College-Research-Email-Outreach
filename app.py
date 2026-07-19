@@ -27,9 +27,21 @@ with st.sidebar:
     if not api_key:
         api_key = env_key if env_key and env_key != "sk-or-v1-your-key-here" else ""
 
+    model_choice = st.selectbox(
+        "AI Model",
+        options=["deepseek", "openrouter-free", "qwen", "gemma", "nemotron", "llama", "custom"],
+        index=0,
+        help="deepseek: DeepSeek V4 Flash (free), openrouter-free: auto-routes to free models, qwen: Qwen3 Coder (free), gemma: Gemma 4 (free), nemotron: Nemotron 3 (free), llama: Llama 3.3 70B (free), custom: enter any model ID"
+    )
+    if model_choice == "custom":
+        custom_model = st.text_input("Custom Model ID", placeholder="e.g. anthropic/claude-3-haiku")
+        actual_model = custom_model if custom_model else "deepseek/deepseek-v4-flash:free"
+    else:
+        actual_model = model_choice
+
     if api_key:
-        llm = LLMAgent(api_key)
-        st.success("LLM connected!")
+        llm = LLMAgent(api_key, model_choice=actual_model)
+        st.success(f"LLM connected ({actual_model})!")
     else:
         llm = None
         st.info("Add OpenRouter key to enable AI features")
@@ -42,7 +54,8 @@ with st.sidebar:
     city = st.text_input("City", placeholder="e.g. Berlin")
     category = st.text_input("Category", placeholder="e.g. AI, Software, Engineering, Medical")
     company_size = st.text_input("Size (optional)", placeholder="e.g. 50-200 employees, Startup")
-    max_results = st.slider("Max sites to scan", 5, 100, 25)
+    max_results = st.slider("Max sites to scan", 5, 75, 15,
+                            help="Higher = more results but slower")
 
     run_btn = st.button("🚀 Start Research", type="primary", use_container_width=True)
 
@@ -69,30 +82,51 @@ with tab1:
         status_box = st.empty()
         progress_bar = st.progress(0)
 
+        expanded_keywords = None
+        llm_queries = None
+
         if llm:
             status_box.info("🧠 AI expanding keywords for smarter search...")
-            expanded_keywords = llm.expand_search_keywords(category, search_type)
-            st.session_state.searched_keywords = [category] + expanded_keywords
-            status_box.info(f"🔎 Searching with {len(expanded_keywords) + 1} related keywords...")
-        else:
-            expanded_keywords = None
-            st.session_state.searched_keywords = [category]
+            expanded_keywords = llm.expand_search_keywords(category, search_type, country, city)
+            st.session_state.searched_keywords = [category] + (expanded_keywords or [])
 
-        queries = search_agent.build_queries(country, city, category, company_size, search_type, expanded_keywords)
+            status_box.info("🧠 AI generating diverse search queries...")
+            llm_queries = llm.generate_search_queries(category, search_type, country, city, expanded_keywords)
 
         discovered_urls = []
-        for i, query in enumerate(queries):
-            results = search_agent.search_companies(query, max_results=max(3, max_results // len(queries)))
-            for r in results:
-                url = r["url"]
-                if url and url not in [du["url"] for du in discovered_urls]:
-                    url_lower = url.lower()
-                    if any(ext in url_lower for ext in [".pdf", ".jpg", ".jpeg", ".png", ".gif", ".zip"]):
-                        continue
-                    discovered_urls.append(r)
-            progress_bar.progress((i + 1) / len(queries))
 
-        status_box.info(f"✅ Found {len(discovered_urls)} sites. Extracting contact info from ALL...")
+        all_queries = search_agent.build_queries(
+            country, city, category, company_size, search_type,
+            expanded_keywords, llm_queries
+        )
+
+        total_queries = len(all_queries)
+        status_box.info(f"🔎 Running {total_queries} search queries against DuckDuckGo...")
+
+        for i, query in enumerate(all_queries):
+            try:
+                results = search_agent.search_companies(query, max_results=10)
+                for r in results:
+                    url = r["url"]
+                    if url and url not in [du["url"] for du in discovered_urls]:
+                        url_lower = url.lower()
+                        if any(ext in url_lower for ext in [".pdf", ".jpg", ".jpeg", ".png", ".gif", ".zip"]):
+                            continue
+                        if llm and i < 10:
+                            classification = llm.classify_search_result(
+                                r["title"], r["snippet"], url, category
+                            )
+                            if not classification.get("is_valid_target", True):
+                                continue
+                        discovered_urls.append(r)
+            except:
+                pass
+            progress_bar.progress((i + 1) / total_queries)
+
+        discovered_urls = discovered_urls[:max_results]
+        progress_bar.empty()
+
+        status_box.info(f"✅ Found {len(discovered_urls)} unique sites. Extracting contact info...")
 
         all_results = []
         for i, entry in enumerate(discovered_urls):
@@ -157,12 +191,12 @@ with tab1:
         st.session_state.verified_count = verified_count
         st.session_state.all_data = final_rows
 
+        progress_bar.empty()
         status_box.success(
             f"✅ Done! {len(discovered_urls)} sites scanned, "
             f"{sum(1 for r in all_results if r['emails'])} with emails, "
             f"{verified_count} with verified emails."
         )
-        progress_bar.empty()
 
     if not st.session_state.results.empty:
         df = st.session_state.results
@@ -196,8 +230,10 @@ with tab1:
                 mime="text/csv",
             )
 
+    elif run_btn and not st.session_state.results.empty:
+        pass
     elif run_btn:
-        st.warning("No results found. Try broader search terms.")
+        st.warning("No results found. Try broader search terms, fewer filters, or check your API key.")
     else:
         st.info("Enter criteria in the sidebar and click 'Start Research'.")
 
@@ -338,4 +374,4 @@ with tab3:
         st.info("Generate email drafts in the 'AI Outreach Drafts' tab first.")
 
 st.divider()
-st.caption("Powered by DuckDuckGo, DeepSeek V4 via OpenRouter, SMTP verification — 100% free tier")
+st.caption("Powered by DuckDuckGo, multiple free LLMs via OpenRouter, SMTP verification — 100% free tier")
