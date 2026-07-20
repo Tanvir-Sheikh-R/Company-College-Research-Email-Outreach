@@ -292,6 +292,7 @@ with tab2:
                         custom_message=custom_message,
                         company_description=company_desc,
                     )
+                    
                     drafts.append({"company": company_name, "email": first_email, "draft": draft})
                     gen_progress.progress((idx + 1) / len(selected_indices))
 
